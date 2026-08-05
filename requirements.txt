@@ -1,4 +1,6 @@
-streamlit==1.38.0
+streamlit1.38.0
+starlette0.38.2
 pandas
 openpyxl
+pillow==10.4.0
 openai
