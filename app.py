@@ -9,7 +9,7 @@ from openai import OpenAI
 # 網頁基本設定 (必須放在最上方)
 # ==========================================
 st.set_page_config(
-    page_title="AI 聊天機器人溝通風格體驗研究", # 瀏覽器標籤頁顯示的名稱
+    page_title="AI聊天機器人", # 瀏覽器標籤頁顯示的名稱
     page_icon="💬",                            # 瀏覽器標籤頁顯示的圖示 (可放 Emoji)
     layout="centered"
 )
