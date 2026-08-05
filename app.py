@@ -6,6 +6,15 @@ from datetime import datetime
 from openai import OpenAI
 
 # ==========================================
+# 網頁基本設定 (必須放在最上方)
+# ==========================================
+st.set_page_config(
+    page_title="AI 聊天機器人溝通風格體驗研究", # 瀏覽器標籤頁顯示的名稱
+    page_icon="💬",                            # 瀏覽器標籤頁顯示的圖示 (可放 Emoji)
+    layout="centered"
+)
+
+# ==========================================
 # 透過 Streamlit Secrets 安全地讀取 API Key
 # ==========================================
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -86,14 +95,22 @@ elif st.session_state.stage == "pre_test":
 # ==========================================
 elif st.session_state.stage == "chat_task":
     st.write("### 第三部分：客服互動體驗")
-    st.write("💡 **任務：請向客服機器人詢問如何辦理商品退貨。**")
+    
+    # 增加詳細的情境描述框
+    st.info(
+        "💡 **【任務情境說明】**\n\n"
+        "假設您上週在網路商城買了一副**「藍牙耳機」**，但收到後發現**「右邊的耳機完全沒有聲音」**。\n\n"
+        "👉 **您的任務：** 請透過下方的對話框，向客服機器人說明商品瑕疵，並**詢問該如何辦理退貨或換貨**。\n\n"
+        "*(請盡量像平常遇到客訴情況一樣，自然地與機器人進行對話)*",
+        icon="🛍️"
+    )
     
     # 1. 根據分派的風格，設定 AI 的「系統人設 (System Prompt)」
     if "system_prompt_set" not in st.session_state:
         if st.session_state.bot_style == "高語境 (High-Context)":
-            sys_prompt = "你是一個溫暖、高情商、重視關係的客服。請多用表情符號，回覆時要先安撫情緒、同理對方，語氣要像朋友般親切委婉，不要用冷冰冰的條列式，依賴情境來給予回應。"
+            sys_prompt = "你是一家網路商城的客服，具備溫暖、高情商、重視關係的特質。請多用表情符號，回覆時要先安撫情緒、同理對方，語氣要像朋友般親切委婉，不要用冷冰冰的條列式，依賴情境來給予回應。"
         else:
-            sys_prompt = "你是一個高效、任務導向、直接明確的專業客服。絕對不要使用表情符號，也不需要客套或安撫情緒。請直接、精準地給出答案，並盡量使用條列式（1. 2. 3.）列出清楚的步驟，給予資訊完整的指示。"
+            sys_prompt = "你是一家網路商城的客服，具備高效、任務導向、直接明確的特質。絕對不要使用表情符號，也不需要客套或安撫情緒。請直接、精準地給出答案，並盡量使用條列式（1. 2. 3.）列出清楚的步驟，給予資訊完整的指示。"
         
         # 將系統提示詞作為對話的第一句 (隱藏不顯示給使用者看)
         st.session_state.messages.append({"role": "system", "content": sys_prompt})
@@ -106,7 +123,7 @@ elif st.session_state.stage == "chat_task":
                 st.markdown(msg["content"])
             
     # 3. 接收使用者輸入，並呼叫 OpenAI API
-    if prompt := st.chat_input("請輸入您的訊息... (例如：我要退貨)"):
+    if prompt := st.chat_input("請輸入您的訊息... (例如：你好，我買的耳機壞了)"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -127,14 +144,22 @@ elif st.session_state.stage == "chat_task":
             
     st.divider()
     
-    # 4. 防呆機制：判斷對話紀錄長度，確保使用者有互動過才能按結束
-    # 因為系統設定(system)佔了第1句，所以大於1代表使用者有傳訊息了
-    if len(st.session_state.messages) > 1:
+    # 4. 防呆機制：計算使用者發送的訊息數量 (排除系統與助理訊息)
+    user_msg_count = sum(1 for msg in st.session_state.messages if msg["role"] == "user")
+    
+    # 設定最少需要對話的次數 (目前設定為 2 次)
+    MIN_INTERACTIONS = 2
+    
+    if user_msg_count >= MIN_INTERACTIONS:
         if st.button("✅ 任務已完成，結束對話", type="primary", use_container_width=True):
             st.session_state.stage = "post_test"
             st.rerun()
     else:
-        st.warning("👈 請先在下方的輸入框與客服機器人互動，提出您的退貨需求。完成對話後，這裡才會出現結束任務的按鈕喔！")
+        remain = MIN_INTERACTIONS - user_msg_count
+        if user_msg_count == 0:
+            st.warning(f"👈 請在下方輸入框與客服對話。為確保體驗完整，請至少進行 **{MIN_INTERACTIONS} 次** 訊息傳送。")
+        else:
+            st.warning(f"💬 對話進行中... 請**再發送 {remain} 則訊息**與機器人互動，結束任務的按鈕就會出現喔！")
 
 # ==========================================
 # 階段四：後測問卷與寫入 Excel
