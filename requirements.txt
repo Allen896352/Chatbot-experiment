@@ -3,4 +3,3 @@ pandas
 openpyxl
 pillow>=10.4.0
 openai
-```eof
