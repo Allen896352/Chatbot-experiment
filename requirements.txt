@@ -1,6 +1,6 @@
-streamlit==1.38.0
-starlette==0.38.2
+streamlit
 pandas
 openpyxl
-pillow==10.4.0
+pillow>=10.4.0
 openai
+```eof
