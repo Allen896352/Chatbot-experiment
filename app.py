@@ -178,7 +178,13 @@ elif st.session_state.stage == "post_test":
     reuse_score = st.radio("6. 未來如果有需求，我會有意願再次使用這個機器人。(再次使用意圖)", options, horizontal=True)
     
     st.divider()
-    
+    # === 新增：抽獎機制區塊 ===
+    st.write("🎁 **加碼抽獎活動（選填）**")
+    st.write("為了感謝您用心完成實驗，我們將抽出幾位幸運兒贈送【超商商品卡 / LINE Points】！")
+    contact_info = st.text_input("若您有意願參與抽獎，請留下您的 Email 或 IG 帳號（若不參與請直接留白）：")
+
+    st.divider()
+
     if st.button("送出問卷並結束實驗", type="primary"):
         # 1. 判斷使用者的傾向與適配情況
         user_style = "高語境 (High-Context)" if st.session_state.hc_score >= 1 else "低語境 (Low-Context)"
