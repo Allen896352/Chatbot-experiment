@@ -156,8 +156,8 @@ elif st.session_state.stage == "chat_task":
     # 4. 防呆機制：計算使用者發送的訊息數量 (排除系統與助理訊息)
     user_msg_count = sum(1 for msg in st.session_state.messages if msg["role"] == "user")
     
-    # 設定最少需要對話的次數 (目前設定為 2 次)
-    MIN_INTERACTIONS = 2
+    # 設定最少需要對話的次數
+    MIN_INTERACTIONS = 5
     
     if user_msg_count >= MIN_INTERACTIONS:
         if st.button("✅ 任務已完成，結束對話", type="primary", use_container_width=True):
