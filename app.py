@@ -86,7 +86,7 @@ elif st.session_state.stage == "pre_test":
                 st.rerun()
     else:
         # 分派邏輯：隨機分配機器人風格 (模擬實驗 2x2 設計)
-        st.session_state.bot_style = "高語境 (High-Context)"
+        st.session_state.bot_style = "低語境 (Low-Context)"
         st.session_state.stage = "chat_task"
         st.rerun()
 
