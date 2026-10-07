@@ -157,7 +157,7 @@ elif st.session_state.stage == "chat_task":
     user_msg_count = sum(1 for msg in st.session_state.messages if msg["role"] == "user")
     
     # 設定最少需要對話的次數
-    MIN_INTERACTIONS = 5
+    MIN_INTERACTIONS = 3
     
     if user_msg_count >= MIN_INTERACTIONS:
         if st.button("✅ 任務已完成，結束對話", type="primary", use_container_width=True):
