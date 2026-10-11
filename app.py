@@ -137,7 +137,7 @@ elif st.session_state.stage == "finish":
     st.markdown(f"### [👉 點擊這裡繼續完成 Google 表單]({post_test_url})")
     
     # 告知使用者他們剛才測驗的語境，方便他們填答問卷
-    st.info(f"💡 提醒：您剛才體驗的機器人風格為 **{st.session_state.bot_style}**。若問卷中有詢問，請以此為準填寫喔！")
+    #st.info(f"💡 提醒：您剛才體驗的機器人風格為 **{st.session_state.bot_style}**。若問卷中有詢問，請以此為準填寫喔！")
     
     st.divider()
     
