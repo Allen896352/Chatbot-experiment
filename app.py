@@ -20,7 +20,7 @@ client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 if "stage" not in st.session_state:
     st.session_state.stage = "welcome"  # 初始設定為歡迎與前測頁面
     # 一進來就隨機分配機器人風格
-    st.session_state.bot_style = "低語境 (Low-Context)"
+    st.session_state.bot_style =random.choice(["高語境 (High-Context)", "低語境 (Low-Context)"])
     #random.choice(["高語境 (High-Context)", "低語境 (Low-Context)"]) 如果要隨機的話
     st.session_state.messages = []
 
