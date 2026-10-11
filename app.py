@@ -141,6 +141,6 @@ elif st.session_state.stage == "finish":
     
     st.divider()
     
-    if st.button("重新開始一筆新測試 (僅供測試除錯用)"):
+    if st.button("重新開始一筆新測試"):
         st.session_state.clear()
         st.rerun()
