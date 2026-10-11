@@ -99,10 +99,10 @@ elif st.session_state.stage == "chat_task":
     # 增加詳細的情境描述框
     st.info(
         "💡 **【任務情境說明】**\n\n"
-        "假設您上週在網路商城買了一副「藍牙耳機」，但收到後發現「右邊的耳機完全沒有聲音」。\n\n"
-        "👉 **您的任務：** 請透過下方的對話框，向客服機器人說明商品瑕疵，並**詢問該如何辦理退貨或換貨**。\n\n"
+        "假設您上週在網路商城買了一件**「衣服」**，但收到包裹後發現**「衣服上有明顯的瑕疵（例如破洞或大片污漬）」**。\n\n"
+        "👉 **您的任務：** 請透過下方的對話框，向客服機器人說明商品狀況，並**詢問該如何辦理退貨或換貨**。\n\n"
         "*(請盡量像平常遇到客訴情況一樣，自然地與機器人進行對話)*",
-        icon="🛍️"
+        icon="👕"
     )
     
     # 1. 根據分派的風格，設定 AI 的「系統人設 (System Prompt)」
@@ -132,7 +132,7 @@ elif st.session_state.stage == "chat_task":
                 st.markdown(msg["content"])
             
     # 3. 接收使用者輸入，並呼叫 OpenAI API
-    if prompt := st.chat_input("請輸入您的訊息... (例如：你好，我買的耳機壞了)"):
+    if prompt := st.chat_input("請輸入您的訊息... (例如：你好，我收到的衣服上面有破洞)"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
