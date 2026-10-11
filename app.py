@@ -1,16 +1,13 @@
 import streamlit as st
 import random
-import pandas as pd
-import os
-from datetime import datetime
 from openai import OpenAI
 
 # ==========================================
 # 網頁基本設定 (必須放在最上方)
 # ==========================================
 st.set_page_config(
-    page_title="AI聊天機器人", # 瀏覽器標籤頁顯示的名稱
-    page_icon="💬",          # 瀏覽器標籤頁顯示的圖示 (可放 Emoji)
+    page_title="AI聊天機器人", 
+    page_icon="💬",          
     layout="centered"
 )
 
@@ -19,84 +16,39 @@ st.set_page_config(
 # ==========================================
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-# 初始化 session_state 變數，控制實驗流程與儲存資料
+# 初始化 session_state 變數，控制實驗流程
 if "stage" not in st.session_state:
-    st.session_state.stage = "background_survey" 
-    st.session_state.hc_score = 0
-    st.session_state.q_index = 0
-    st.session_state.bot_style = ""
+    st.session_state.stage = "welcome"  # 初始設定為歡迎與前測頁面
+    # 一進來就隨機分配機器人風格
+    st.session_state.bot_style = random.choice(["高語境 (High-Context)", "低語境 (Low-Context)"])
     st.session_state.messages = []
-    
-    # 預留變數儲存問卷與測驗結果
-    st.session_state.prior_experience = ""
-    st.session_state.usage_frequency = ""
 
 st.title("AI 聊天機器人溝通風格體驗研究")
 
 # ==========================================
-# 階段一：基本背景與使用經驗前測
+# 階段一：填寫前測 Google 表單
 # ==========================================
-if st.session_state.stage == "background_survey":
-    st.write("### 第一部分：基本使用經驗")
-    st.write("在開始之前，請協助我們了解您過去使用 AI 聊天機器人的經驗。")
+if st.session_state.stage == "welcome":
+    st.write("### 步驟一：填寫基本資料與前測")
+    st.write("歡迎參與本次研究！在開始與機器人對話之前，請先點擊下方連結填寫人口統計資料與前測問卷。")
     
-    exp = st.radio("1. 請問您之前是否使用過 AI 聊天機器人？", ["是", "否"], index=None)
-    freq = st.selectbox("2. 如果您曾使用過，請問您的使用頻率大約是？", ["請選擇", "從未使用過", "幾個月一次", "每週大約 1-2 次", "幾乎每天使用"])
+    # ⬇️ 預留的前測 Google 表單連結位子 ⬇️
+    pre_test_url = "https://forms.gle/YOUR_PRE_TEST_FORM_LINK_HERE"
+    st.markdown(f"### [👉 點擊這裡填寫第一部分問卷]({pre_test_url})")
     
-    st.divider()
-    if st.button("下一步，進入情境測驗", type="primary"):
-        if exp is None or freq == "請選擇":
-            st.warning("⚠️ 請完整填寫以上問題後再進入下一步喔！")
-        else:
-            st.session_state.prior_experience = exp
-            st.session_state.usage_frequency = freq
-            st.session_state.stage = "pre_test"
-            st.rerun()
-
-# ==========================================
-# 階段二：隱蔽前測 (判斷高低語境傾向)
-# ==========================================
-elif st.session_state.stage == "pre_test":
-    st.write("### 第二部分：情境決策小測驗")
-    st.write("請根據直覺回答以下日常情境題：")
+    st.info("💡 填寫完畢後，請**保留表單分頁不要關閉**（稍後對話完需繼續填寫），並回到本網頁點擊下方按鈕。")
     
-    questions = [
-        {"q": "情境一：主管交代任務，你偏好哪種方式？", "lc": "給我清晰的步驟與明確清單。", "hc": "告訴我大方向與背景原因即可。"},
-        {"q": "情境二：拒絕朋友邀約，你會怎麼說？", "lc": "我那天剛好有事，去不了。", "hc": "聽起來很棒！但我最近有點忙，我再看看喔。"}
-    ]
-    
-    if st.session_state.q_index < len(questions):
-        current_q = questions[st.session_state.q_index]
-        
-        # 視覺優化：用顏色框把題目包起來
-        st.info(f"🤔 **{current_q['q']}**", icon="💡")
-        st.write("請點擊最符合您直覺的作法：")
-        st.write("") 
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            # 視覺優化：加上 use_container_width=True 讓選項按鈕變大
-            if st.button(current_q['lc'], key=f"lc_{st.session_state.q_index}", use_container_width=True):
-                st.session_state.q_index += 1
-                st.rerun()
-        with col2:
-            if st.button(current_q['hc'], key=f"hc_{st.session_state.q_index}", use_container_width=True):
-                st.session_state.hc_score += 1 
-                st.session_state.q_index += 1
-                st.rerun()
-    else:
-        # 分派邏輯：隨機分配機器人風格 (模擬實驗 2x2 設計)
-        st.session_state.bot_style = "低語境 (Low-Context)"
+    if st.button("我已完成前測，開始對話任務", type="primary", use_container_width=True):
         st.session_state.stage = "chat_task"
         st.rerun()
 
 # ==========================================
-# 階段三：核心對話任務 (真實 AI 串接版 + 防呆按鈕)
+# 階段二：核心對話任務 (真實 AI 串接版)
 # ==========================================
 elif st.session_state.stage == "chat_task":
-    st.write("### 第三部分：客服互動體驗")
+    st.write("### 步驟二：客服互動體驗")
     
-    # 增加詳細的情境描述框
+    # 詳細的情境描述框
     st.info(
         "💡 **【任務情境說明】**\n\n"
         "假設您上週在網路商城買了一件**「衣服」**，但收到包裹後發現**「衣服上有明顯的瑕疵（例如破洞或大片污漬）」**。\n\n"
@@ -108,7 +60,7 @@ elif st.session_state.stage == "chat_task":
     # 1. 根據分派的風格，設定 AI 的「系統人設 (System Prompt)」
     if "system_prompt_set" not in st.session_state:
         if st.session_state.bot_style == "高語境 (High-Context)":
-            sys_prompt ="""你是一家網路商城的客服，請嚴格遵循以下「高語境溝通」規則來回覆使用者：
+            sys_prompt = """你是一家網路商城的客服，請嚴格遵循以下「高語境溝通」規則來回覆使用者：
             1. 社交客套與招呼：在解答問題前，必須先進行溫暖的社交問候與閒聊，建立對話關係背景。
             2. 委婉與緩和表達：避免過於直接的拒絕或字眼，改用緩和修飾語、抱歉與同理心詞彙以維持和諧。
             3. 非語言與情感線索：頻繁且適當地融入表情符號（Emojis），模擬人類對話中的面部表情與情緒線索。
@@ -140,10 +92,11 @@ elif st.session_state.stage == "chat_task":
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
             
-            # 呼叫 OpenAI API (使用 gpt-4o-mini 模型)
+            # 呼叫 OpenAI API (加入 temperature 參數控制風格穩定性)
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=st.session_state.messages,
+                temperature=0.3
             )
             
             bot_reply = response.choices[0].message.content
@@ -160,8 +113,8 @@ elif st.session_state.stage == "chat_task":
     MIN_INTERACTIONS = 3
     
     if user_msg_count >= MIN_INTERACTIONS:
-        if st.button("✅ 任務已完成，結束對話", type="primary", use_container_width=True):
-            st.session_state.stage = "post_test"
+        if st.button("✅ 任務已完成，結束對話並前往後測問卷", type="primary", use_container_width=True):
+            st.session_state.stage = "finish"
             st.rerun()
     else:
         remain = MIN_INTERACTIONS - user_msg_count
@@ -171,95 +124,22 @@ elif st.session_state.stage == "chat_task":
             st.warning(f"💬 對話進行中... 請**再發送 {remain} 則訊息**與機器人互動，結束任務的按鈕就會出現喔！")
 
 # ==========================================
-# 階段四：後測問卷與寫入 Excel
-# ==========================================
-elif st.session_state.stage == "post_test":
-    st.write("### 第四部分：互動體驗問卷")
-    st.write("請根據剛剛與客服機器人的互動經驗，評估以下描述（1分=非常不同意，7分=非常同意）：")
-    
-    options = [1, 2, 3, 4, 5, 6, 7]
-    
-    fit_score = st.radio("1. 這個機器人的溝通方式，很符合我平時習慣的交流模式。(知覺契合度)", options, horizontal=True)
-    close_score = st.radio("2. 我覺得這個機器人似乎能理解我、與我有一種親近感。(社會親近感)", options, horizontal=True)
-    clarity_score = st.radio("3. 這個機器人傳遞的訊息非常容易理解，沒有模糊地帶。(訊息清晰度)", options, horizontal=True)
-    emotion_score = st.radio("4. 這次的互動體驗讓我在情緒上感到很舒適。(情感價值)", options, horizontal=True)
-    function_score = st.radio("5. 這個機器人提供的資訊具有高度的實用性。(功能價值)", options, horizontal=True)
-    reuse_score = st.radio("6. 未來如果有需求，我會有意願再次使用這個機器人。(再次使用意圖)", options, horizontal=True)
-    
-    st.divider()
-    # === 新增：抽獎機制區塊 ===
-    st.write("🎁 **加碼抽獎活動（選填）**")
-    st.write("為了感謝您用心完成實驗，我們將抽出幾位幸運兒贈送【超商商品卡 / LINE Points】！")
-    contact_info = st.text_input("若您有意願參與抽獎，請留下您的 Email 或 IG 帳號（若不參與請直接留白）：")
-
-    st.divider()
-
-    if st.button("送出問卷並結束實驗", type="primary"):
-        # 1. 判斷使用者的傾向與適配情況
-        user_style = "高語境 (High-Context)" if st.session_state.hc_score >= 1 else "低語境 (Low-Context)"
-        is_matched = "適配 (Matched)" if user_style == st.session_state.bot_style else "不適配 (Mismatched)"
-        
-        # 2. 整理要存入 Excel 的這筆資料 (中文標題)
-        result_data = {
-            "填答時間": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "是否有使用經驗": st.session_state.prior_experience,
-            "使用頻率": st.session_state.usage_frequency,
-            "前測高語境分數": st.session_state.hc_score,
-            "判定使用者風格": user_style,
-            "分派機器人風格": st.session_state.bot_style,
-            "適配情況": is_matched,
-            "知覺溝通契合度": fit_score,
-            "知覺社會親近感": close_score,
-            "知覺訊息清晰度": clarity_score,
-            "情感價值": emotion_score,
-            "功能價值": function_score,
-            "再次使用意圖": reuse_score
-        }
-        
-        # 3. 寫入 Excel 的邏輯
-        file_name = "experiment_results.xlsx"
-        df_new = pd.DataFrame([result_data])
-        
-        if os.path.exists(file_name):
-            df_existing = pd.read_excel(file_name)
-            df_final = pd.concat([df_existing, df_new], ignore_index=True)
-            df_final.to_excel(file_name, index=False)
-        else:
-            df_new.to_excel(file_name, index=False)
-            
-        st.session_state.stage = "finish"
-        st.rerun()
-
-# ==========================================
-# 結束畫面
+# 階段三：結束畫面與跳轉 Google 表單後測
 # ==========================================
 elif st.session_state.stage == "finish":
-    st.success("🎉 資料已成功儲存！非常感謝您的參與！")
-    st.write("您的回覆已經記錄完成了。")
+    st.success("🎉 對話任務已完成！非常感謝您的配合。")
+    st.write("### 步驟三：完成後測問卷")
+    st.write("接下來請點擊下方連結（或回到剛剛未關閉的表單分頁），接續完成最後的後測問題：")
     
-    if st.button("重新開始一筆新測試"):
+    # ⬇️ 預留的後測 Google 表單連結位子 ⬇️
+    post_test_url = "https://forms.gle/YOUR_POST_TEST_FORM_LINK_HERE"
+    st.markdown(f"### [👉 點擊這裡繼續完成 Google 表單]({post_test_url})")
+    
+    # 告知使用者他們剛才測驗的語境，方便他們填答問卷
+    st.info(f"💡 提醒：您剛才體驗的機器人風格為 **{st.session_state.bot_style}**。若問卷中有詢問，請以此為準填寫喔！")
+    
+    st.divider()
+    
+    if st.button("重新開始一筆新測試 (僅供測試除錯用)"):
         st.session_state.clear()
         st.rerun()
-
-# ==========================================
-# 管理員後台：下載 Excel 資料 (放在側邊欄)
-# ==========================================
-with st.sidebar:
-    st.write("### 🔒 研究者管理後台")
-    admin_password = st.text_input("請輸入管理員密碼", type="password")
-    
-    # 這裡的密碼請在下方自行設定，目前預設為 "1234"
-    if admin_password == "1234":
-        st.success("密碼正確！")
-        file_name = "experiment_results.xlsx"
-        
-        if os.path.exists(file_name):
-            with open(file_name, "rb") as file:
-                btn = st.download_button(
-                    label="📥 下載實驗數據 (Excel)",
-                    data=file,
-                    file_name=f"實驗結果_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-        else:
-            st.warning("目前還沒有人填寫，尚無資料可下載。")
