@@ -209,6 +209,9 @@ elif st.session_state.stage == "finish":
         f"&entry.455003621={safe_exp_bot}"                      # 8. 客服機器人經驗 (轉碼後)
     )
     
+# 🔥 終極解法：改用 Streamlit 原生按鈕，直接開新分頁前往表單
+    st.info("為了確保您的測驗資料能完整紀錄，請點擊下方按鈕前往填寫最後的問卷。填寫完畢後即可關閉網頁。")
+    st.link_button("📝 點此填寫後測問卷", post_test_form_url, type="primary", use_container_width=True)
     
     # 嵌入 Google 表單
     components.iframe(post_test_form_url, width=700, height=1200, scrolling=True)
