@@ -211,7 +211,7 @@ elif st.session_state.stage == "finish":
 
     
 # 嵌入 Google 表單
-    components.iframe(post_test_form_url, width=700, height=1200, scrolling=True)
+    components.iframe(post_test_form_url, width=700, height=600, scrolling=True)
     
     st.divider()
     # 開放給受測者前，可將此測試用重置按鈕刪除或註解掉
