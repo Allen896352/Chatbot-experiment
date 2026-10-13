@@ -143,4 +143,69 @@ elif st.session_state.stage == "chat_task":
                 st.markdown(msg["content"])
             
     # 3. 接收使用者輸入與呼叫 API
-    if prompt := st.chat_input("請輸入您的訊息... (例如：你好，衣服
+    if prompt := st.chat_input("請輸入您的訊息... (例如：你好，衣服有瑕疵要怎麼換)"):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+            
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=st.session_state.messages,
+                temperature=0.3
+            )
+            bot_reply = response.choices[0].message.content
+            message_placeholder.markdown(bot_reply)
+        
+        st.session_state.messages.append({"role": "assistant", "content": bot_reply})
+            
+    st.divider()
+    
+    # 4. 互動次數防呆機制
+    user_msg_count = sum(1 for msg in st.session_state.messages if msg["role"] == "user")
+    MIN_INTERACTIONS = 3
+    
+    if user_msg_count >= MIN_INTERACTIONS:
+        if st.button("✅ 任務已完成，結束對話並進行問卷", type="primary", use_container_width=True):
+            st.session_state.stage = "finish"
+            st.rerun()
+    else:
+        remain = MIN_INTERACTIONS - user_msg_count
+        if user_msg_count == 0:
+            st.caption(f"👈 請在下方輸入框與客服對話。需至少進行 **{MIN_INTERACTIONS} 次** 訊息傳送才會出現結束按鈕。")
+        else:
+            st.caption(f"💬 對話進行中... 請**再發送 {remain} 則訊息**與機器人互動。")
+
+# ==========================================
+# 階段三：嵌入後測 Google 表單 (自動帶入 8 項變數)
+# ==========================================
+elif st.session_state.stage == "finish":
+    st.success("🎉 對話任務已完成！非常感謝您的配合。")
+    st.write("### 步驟三：完成滿意度問卷")
+    st.write("請直接在下方框框內填寫最後的問卷，填寫完畢並按下「提交」即完成本次實驗。")
+    
+    # ⚠️【上線前必改】替換成你真實的表單網址與 entry ID
+    base_form_url = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform?embedded=true"
+    
+    post_test_form_url = (
+        f"{base_form_url}"
+        f"&entry.11111={st.session_state.user_id}"          # 1. 專屬 ID
+        f"&entry.22222={st.session_state.bot_style}"        # 2. 分配風格
+        f"&entry.33333={st.session_state.hc_score}"         # 3. 高語境總分
+        f"&entry.44444={st.session_state.lc_score}"         # 4. 低語境總分
+        f"&entry.55555={st.session_state.gender}"           # 5. 性別
+        f"&entry.66666={st.session_state.age}"              # 6. 年齡
+        f"&entry.77777={st.session_state.exp_shopping}"     # 7. 網購頻率
+        f"&entry.88888={st.session_state.exp_bot}"          # 8. 客服機器人經驗
+    )
+    
+    # 嵌入 Google 表單
+    components.iframe(post_test_form_url, width=700, height=1200, scrolling=True)
+    
+    st.divider()
+    # 開放給受測者前，可將此測試用重置按鈕刪除或註解掉
+    if st.button("重新開始一筆新測試 (僅供測試除錯用)"):
+        st.session_state.clear()
+        st.rerun()
