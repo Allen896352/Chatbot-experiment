@@ -208,9 +208,6 @@ elif st.session_state.stage == "finish":
         f"&entry.417434269={safe_exp_shopping}"                 # 7. 網購頻率 (轉碼後)
         f"&entry.455003621={safe_exp_bot}"                      # 8. 客服機器人經驗 (轉碼後)
     )
-# 🐛 貼在這裡！除錯專用：把網址印出來檢查
-    st.write("🔍 **除錯檢查**：請看下方網址的等號（=）後面，有沒有成功抓到數字跟資料？")
-    st.code(post_test_form_url)
 
     
 # 🔥 終極解法：改用 Streamlit 原生按鈕，直接開新分頁前往表單
