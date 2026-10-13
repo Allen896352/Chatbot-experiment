@@ -13,12 +13,12 @@ st.set_page_config(
     layout="centered"
 )
 
-# 透過 Streamlit Secrets 讀取 API Key
+# 透過 Streamlit Secrets 讀取 API Key (請確保 .streamlit/secrets.toml 已設定好)
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # 初始化 session_state 變數，控制實驗流程與儲存資料
 if "stage" not in st.session_state:
-    st.session_state.stage = "pre_test"  
+    st.session_state.stage = "pre_test"  # 初始階段：前測
     st.session_state.user_id = str(uuid.uuid4())[:8] # 產生 8 碼的專屬受測者 ID
     st.session_state.hc_score = 0
     st.session_state.lc_score = 0
@@ -28,11 +28,11 @@ if "stage" not in st.session_state:
 st.title("🛍️ 網購客服 AI 互動測試")
 
 # ==========================================
-# 階段一：語境判斷 (隨機打亂題目 + 7分量表)
+# 階段一：基本資料與語境判斷 (系統自動計分)
 # ==========================================
 if st.session_state.stage == "pre_test":
-    st.write("### 步驟一：語境判斷")
-    st.write("請根據您平時的溝通習慣，評估以下描述（1=非常不同意，7=非常同意）：")
+    st.write("### 步驟一：前測問卷")
+    st.write("在開始對話前，請先協助我們填寫基本資料與溝通習慣。")
     
     # 1. 建立題庫：標註每題的屬性 (HC=高語境, LC=低語境)
     if "shuffled_questions" not in st.session_state:
@@ -46,11 +46,23 @@ if st.session_state.stage == "pre_test":
             {"id": "q7", "text": "我是一個極度開放的溝通者。", "type": "LC"},
             {"id": "q8", "text": "我很樂意向他人透露關於我自己的私事。", "type": "LC"}
         ]
-        random.shuffle(questions)
+        random.shuffle(questions)  # 將題目順序打亂
         st.session_state.shuffled_questions = questions
 
     # 2. 建立作答表單
     with st.form("context_test_form"):
+        # --- 第一部分：基本資料預留區塊 ---
+        st.markdown("#### 第一部分：基本資料與使用經驗")
+        gender = st.selectbox("1. 您的性別", ["男", "女", "其他", "不願透露"])
+        age = st.selectbox("2. 您的年齡", ["20歲(含)以下", "21-25歲", "26-30歲", "31-40歲", "41歲以上"])
+        exp_shopping = st.selectbox("3. 您平時網購的頻率大約是？", ["每週至少一次", "每個月一到兩次", "每半年一次", "幾乎不網購"])
+        exp_bot = st.selectbox("4. 您過去與「網購客服機器人」互動的經驗為何？", ["經常使用", "偶爾使用", "很少使用", "從未使用"])
+        
+        st.divider() 
+        
+        # --- 第二部分：語境評估 ---
+        st.markdown("#### 第二部分：溝通風格評估")
+        st.write("請評估以下描述（1=非常不同意，7=非常同意）：")
         options = [1, 2, 3, 4, 5, 6, 7] 
         responses = {}
         
@@ -58,9 +70,16 @@ if st.session_state.stage == "pre_test":
             responses[q["id"]] = st.radio(f"**{i+1}. {q['text']}**", options, horizontal=True)
             st.write("") 
             
+        # 表單送出按鈕
         submitted = st.form_submit_button("✅ 送出並開始對話", type="primary", use_container_width=True)
         
         if submitted:
+            # 將基本資料存入 session_state
+            st.session_state.gender = gender
+            st.session_state.age = age
+            st.session_state.exp_shopping = exp_shopping
+            st.session_state.exp_bot = exp_bot
+            
             hc_total = 0
             lc_total = 0
             
@@ -75,7 +94,7 @@ if st.session_state.stage == "pre_test":
             st.session_state.hc_score = hc_total
             st.session_state.lc_score = lc_total
             
-            # 4. 判定邏輯
+            # 4. 判定邏輯：分數高者得勝 (若同分則預設分配高語境)
             if hc_total >= lc_total:
                 st.session_state.bot_style = "高語境 (High-Context)"
             else:
@@ -98,6 +117,7 @@ elif st.session_state.stage == "chat_task":
         icon="👕"
     )
     
+    # 1. 根據前測分派的風格，設定 AI 的系統人設
     if "system_prompt_set" not in st.session_state:
         if st.session_state.bot_style == "高語境 (High-Context)":
             sys_prompt = """你是一家網路商城的客服，請嚴格遵循以下「高語境溝通」規則來回覆使用者：
@@ -116,67 +136,11 @@ elif st.session_state.stage == "chat_task":
         st.session_state.messages.append({"role": "system", "content": sys_prompt})
         st.session_state.system_prompt_set = True
 
+    # 2. 顯示對話紀錄
     for msg in st.session_state.messages:
         if msg["role"] != "system":
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
             
-    if prompt := st.chat_input("請輸入您的訊息..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-            
-        with st.chat_message("assistant"):
-            message_placeholder = st.empty()
-            
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=st.session_state.messages,
-                temperature=0.3
-            )
-            bot_reply = response.choices[0].message.content
-            message_placeholder.markdown(bot_reply)
-        
-        st.session_state.messages.append({"role": "assistant", "content": bot_reply})
-            
-    st.divider()
-    
-    user_msg_count = sum(1 for msg in st.session_state.messages if msg["role"] == "user")
-    MIN_INTERACTIONS = 1
-    
-    if user_msg_count >= MIN_INTERACTIONS:
-        if st.button("✅ 任務已完成，結束對話並進行問卷", type="primary", use_container_width=True):
-            st.session_state.stage = "finish"
-            st.rerun()
-    else:
-        remain = MIN_INTERACTIONS - user_msg_count
-        if user_msg_count == 0:
-            st.caption(f"👈 請在下方輸入框與客服對話。需至少進行 **{MIN_INTERACTIONS} 次** 訊息傳送才會出現結束按鈕。")
-        else:
-            st.caption(f"💬 對話進行中... 請**再發送 {remain} 則訊息**與機器人互動。")
-
-# ==========================================
-# 階段三：嵌入後測 Google 表單 
-# ==========================================
-elif st.session_state.stage == "finish":
-    st.success("🎉 對話任務已完成！非常感謝您的配合。")
-    st.write("### 步驟三：完成滿意度問卷")
-    st.write("請直接在下方框框內填寫最後的問卷，填寫完畢並按下「提交」即完成本次實驗。")
-    
-    # ⚠️ 替換成你的 Google 表單網址與 entry ID
-    base_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSf0Y09qP_7kAX5D2V0B7LnZFFlaLpuj-iQ9-zDXHhV2kypepQ/viewform?usp=dialog?embedded=true"
-    
-    post_test_form_url = (
-        f"{base_form_url}"
-        f"&entry.11111={st.session_state.user_id}"       
-        f"&entry.22222={st.session_state.bot_style}"     
-        f"&entry.33333={st.session_state.hc_score}"      
-        f"&entry.44444={st.session_state.lc_score}"      
-    )
-    
-    components.iframe(post_test_form_url, width=700, height=1200, scrolling=True)
-    
-    st.divider()
-    if st.button("重新開始一筆新測試 (僅供測試除錯用)"):
-        st.session_state.clear()
-        st.rerun()
+    # 3. 接收使用者輸入與呼叫 API
+    if prompt := st.chat_input("請輸入您的訊息... (例如：你好，衣服
