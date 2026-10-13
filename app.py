@@ -164,7 +164,7 @@ elif st.session_state.stage == "finish":
     st.write("請直接在下方框框內填寫最後的問卷，填寫完畢並按下「提交」即完成本次實驗。")
     
     # ⚠️ 替換成你的 Google 表單網址與 entry ID
-    base_form_url = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform?embedded=true"
+    base_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSf0Y09qP_7kAX5D2V0B7LnZFFlaLpuj-iQ9-zDXHhV2kypepQ/viewform?usp=dialog?embedded=true"
     
     post_test_form_url = (
         f"{base_form_url}"
