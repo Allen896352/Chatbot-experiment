@@ -109,7 +109,7 @@ elif st.session_state.stage == "chat_task":
     
     # 4. 互動次數防呆機制
     user_msg_count = sum(1 for msg in st.session_state.messages if msg["role"] == "user")
-    MIN_INTERACTIONS = 5
+    MIN_INTERACTIONS = 1
     
     if user_msg_count >= MIN_INTERACTIONS:
         if st.button("✅ 任務已完成，結束對話並進行後測", type="primary", use_container_width=True):
