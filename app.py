@@ -19,7 +19,7 @@ client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # 初始化 session_state 變數，控制實驗流程
 if "stage" not in st.session_state:
-    st.session_state.stage = "welcome"  # 初始階段：歡迎與前測
+    st.session_state.stage = "welcome"  # 初始階段：歡迎與語境測量
     # 隨機分配機器人風格（測試時若想指定，可自行將這行改為寫死字串）
     st.session_state.bot_style = random.choice(["高語境 (High-Context)", "低語境 (Low-Context)"])
     st.session_state.messages = []
@@ -30,7 +30,7 @@ st.title("AI 聊天機器人溝通風格體驗研究")
 # 階段一：填寫前測 Google 表單 (嵌入版)
 # ==========================================
 if st.session_state.stage == "welcome":
-    st.write("### 步驟一：填寫基本資料與前測")
+    st.write("### 步驟一：填寫基本資料與語境測量")
     st.write("歡迎參與本次研究！請直接在下方框框內填寫語境測量問卷，填寫完畢請務必點擊表單最下方的「繼續」。")
     
     # ⬇️ 請將此處替換為你的【前測 Google 表單連結】 (記得網址結尾要有 ?embedded=true) ⬇️
