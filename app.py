@@ -31,7 +31,7 @@ st.title("AI 聊天機器人溝通風格體驗研究")
 # ==========================================
 if st.session_state.stage == "welcome":
     st.write("### 步驟一：填寫基本資料與前測")
-    st.write("歡迎參與本次研究！請直接在下方框框內填寫前測問卷，填寫完畢請務必點擊表單最下方的「提交」。")
+    st.write("歡迎參與本次研究！請直接在下方框框內填寫語境測量問卷，填寫完畢請務必點擊表單最下方的「繼續」。")
     
     # ⬇️ 請將此處替換為你的【前測 Google 表單連結】 (記得網址結尾要有 ?embedded=true) ⬇️
     pre_test_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdBo7-W-GAzfvIeo1oZWWL1CG6gvJJSoSq871WpVA0gRon74A/viewform?usp=header?embedded=true"
@@ -40,7 +40,7 @@ if st.session_state.stage == "welcome":
     components.iframe(pre_test_form_url, width=700, height=800, scrolling=True)
     
     st.divider()
-    st.warning("⚠️ **請確認您已經在上方表單內按下「提交」按鈕，再點擊下方的開始按鈕！**")
+    st.warning("⚠️ **請確認您已經在上方表單內按下「繼續」按鈕，再點擊下方的開始按鈕！**")
     
     if st.button("✅ 我已確實送出表單，開始對話任務", type="primary", use_container_width=True):
         st.session_state.stage = "chat_task"
@@ -109,7 +109,7 @@ elif st.session_state.stage == "chat_task":
     
     # 4. 互動次數防呆機制
     user_msg_count = sum(1 for msg in st.session_state.messages if msg["role"] == "user")
-    MIN_INTERACTIONS = 3
+    MIN_INTERACTIONS = 5
     
     if user_msg_count >= MIN_INTERACTIONS:
         if st.button("✅ 任務已完成，結束對話並進行後測", type="primary", use_container_width=True):
@@ -140,6 +140,6 @@ elif st.session_state.stage == "finish":
     components.iframe(post_test_form_url, width=700, height=1000, scrolling=True)
     
     st.divider()
-    if st.button("重新開始一筆新測試 (僅供測試除錯用)"):
+    if st.button("重新開始一筆新測試"):
         st.session_state.clear()
         st.rerun()
