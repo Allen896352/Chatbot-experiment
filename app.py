@@ -24,7 +24,7 @@ if "stage" not in st.session_state:
     st.session_state.bot_style = ""
     st.session_state.messages = []
 
-st.title("🛍️ 網購客服 AI 互動測試")
+st.title("🛍️ 網購客服 AI 互動聊天機器人")
 
 # ==========================================
 # 階段一：Streamlit 原生前測 (系統自動計分與分派)
@@ -128,7 +128,7 @@ elif st.session_state.stage == "chat_task":
     
     # 4. 互動次數防呆機制 (設定至少要對話 3 次)
     user_msg_count = sum(1 for msg in st.session_state.messages if msg["role"] == "user")
-    MIN_INTERACTIONS = 3
+    MIN_INTERACTIONS = 1
     
     if user_msg_count >= MIN_INTERACTIONS:
         if st.button("✅ 任務已完成，結束對話並進行問卷", type="primary", use_container_width=True):
