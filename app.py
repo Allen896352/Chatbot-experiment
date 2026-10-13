@@ -35,19 +35,19 @@ if st.session_state.stage == "pre_test":
     st.write("### 步驟一：前測問卷")
     st.write("在開始對話前，請先協助我們填寫基本資料與溝通習慣。")
     
-    # 1. 建立題庫：標註每題的屬性 (HC=高語境, LC=低語境)
+# 1. 建立題庫：標註每題的屬性 (HC=高語境, LC=低語境)，並手動交錯排列
     if "shuffled_questions" not in st.session_state:
         questions = [
             {"id": "q1", "text": "即使別人沒有直接說出來，我也能察覺他們的意思。", "type": "HC"},
-            {"id": "q2", "text": "我習慣以間接的方式進行溝通。", "type": "HC"},
-            {"id": "q3", "text": "當被逼問意見時，我會以模稜兩可的立場來回應。", "type": "HC"},
-            {"id": "q4", "text": "我在與他人溝通時會盡力保持關係的和諧。", "type": "HC"},
             {"id": "q5", "text": "我在溝通時喜歡精確無誤。", "type": "LC"},
+            {"id": "q2", "text": "我習慣以間接的方式進行溝通。", "type": "HC"},
             {"id": "q6", "text": "我是一個表達非常精準的溝通者。", "type": "LC"},
+            {"id": "q3", "text": "當被逼問意見時，我會以模稜兩可的立場來回應。", "type": "HC"},
             {"id": "q7", "text": "我是一個極度開放的溝通者。", "type": "LC"},
+            {"id": "q4", "text": "我在與他人溝通時會盡力保持關係的和諧。", "type": "HC"},
             {"id": "q8", "text": "我很樂意向他人透露關於我自己的私事。", "type": "LC"}
         ]
-        random.shuffle(questions)  # 將題目順序打亂
+      
         st.session_state.shuffled_questions = questions
 
     # 2. 建立作答表單
