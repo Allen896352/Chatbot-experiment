@@ -187,18 +187,18 @@ elif st.session_state.stage == "finish":
     st.write("請直接在下方框框內填寫最後的問卷，填寫完畢並按下「提交」即完成本次實驗。")
     
     # ⚠️【上線前必改】替換成你真實的表單網址與 entry ID
-    base_form_url = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform?embedded=true"
+    base_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSewWNdtHlANTFKhX8aitS-NLaYzvU972dkELGW5L8mvlDqQMg/viewform?embedded=true"
     
     post_test_form_url = (
         f"{base_form_url}"
-        f"&entry.11111={st.session_state.user_id}"          # 1. 專屬 ID
-        f"&entry.22222={st.session_state.bot_style}"        # 2. 分配風格
-        f"&entry.33333={st.session_state.hc_score}"         # 3. 高語境總分
-        f"&entry.44444={st.session_state.lc_score}"         # 4. 低語境總分
-        f"&entry.55555={st.session_state.gender}"           # 5. 性別
-        f"&entry.66666={st.session_state.age}"              # 6. 年齡
-        f"&entry.77777={st.session_state.exp_shopping}"     # 7. 網購頻率
-        f"&entry.88888={st.session_state.exp_bot}"          # 8. 客服機器人經驗
+        f"&entry.235439592={st.session_state.user_id}"          # 1. 專屬 ID
+        f"&entry.291326502={st.session_state.bot_style}"        # 2. 分配風格
+        f"&entry.401818618={st.session_state.hc_score}"         # 3. 高語境總分
+        f"&entry.1146105863={st.session_state.lc_score}"         # 4. 低語境總分
+        f"&entry.1418272599={st.session_state.gender}"           # 5. 性別
+        f"&entry.1204605564={st.session_state.age}"              # 6. 年齡
+        f"&entry.417434269={st.session_state.exp_shopping}"     # 7. 網購頻率
+        f"&entry.455003621={st.session_state.exp_bot}"          # 8. 客服機器人經驗
     )
     
     # 嵌入 Google 表單
