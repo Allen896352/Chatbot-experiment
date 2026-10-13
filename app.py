@@ -1,6 +1,6 @@
 import streamlit as st
-import random
-import streamlit.components.v1 as components  # 引入嵌入外部網頁的套件
+import streamlit.components.v1 as components
+import uuid
 from openai import OpenAI
 
 # ==========================================
@@ -12,42 +12,61 @@ st.set_page_config(
     layout="centered"
 )
 
-# ==========================================
-# 透過 Streamlit Secrets 安全地讀取 API Key
-# ==========================================
+# 透過 Streamlit Secrets 讀取 API Key
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-# 初始化 session_state 變數，控制實驗流程
+# 初始化 session_state 變數，控制實驗流程與儲存資料
 if "stage" not in st.session_state:
-    st.session_state.stage = "welcome"  # 初始階段：歡迎與語境測量
-    # 隨機分配機器人風格（測試時若想指定，可自行將這行改為寫死字串）
-    st.session_state.bot_style = random.choice(["高語境 (High-Context)", "低語境 (Low-Context)"])
+    st.session_state.stage = "pre_test"  # 初始階段設定為前測
+    st.session_state.user_id = str(uuid.uuid4())[:8] # 產生 8 碼的專屬受測者 ID
+    st.session_state.hc_score = 0
+    st.session_state.q_index = 0
+    st.session_state.bot_style = ""
     st.session_state.messages = []
 
-st.title("AI 聊天機器人溝通風格體驗研究")
+st.title("🛍️ 網購客服 AI 互動測試")
 
 # ==========================================
-# 階段一：填寫前測 Google 表單 (嵌入版)
+# 階段一：Streamlit 原生前測 (系統自動計分與分派)
 # ==========================================
-if st.session_state.stage == "welcome":
-    st.write("### 步驟一：填寫基本資料與語境測量")
-    st.write("歡迎參與本次研究！請直接在下方框框內填寫語境測量問卷，填寫完畢請務必點擊表單最下方的「繼續」。")
+if st.session_state.stage == "pre_test":
+    st.write("### 步驟一：情境決策小測驗")
+    st.write("請根據直覺回答以下日常情境題，系統將為您安排適合的客服人員：")
     
-    # ⬇️ 請將此處替換為你的【前測 Google 表單連結】 (記得網址結尾要有 ?embedded=true) ⬇️
-    pre_test_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdBo7-W-GAzfvIeo1oZWWL1CG6gvJJSoSq871WpVA0gRon74A/viewform?usp=header?embedded=true"
+    questions = [
+        {"q": "情境一：主管交代任務，你偏好哪種方式？", "lc": "給我清晰的步驟與明確清單。", "hc": "告訴我大方向與背景原因即可。"},
+        {"q": "情境二：拒絕朋友邀約，你會怎麼說？", "lc": "我那天剛好有事，去不了。", "hc": "聽起來很棒！但我最近有點忙，我再看看喔。"}
+    ]
     
-    # 在網頁中嵌入表單 (可根據需要調整 height 高度)
-    components.iframe(pre_test_form_url, width=1500, height=800, scrolling=True)
-    
-    st.divider()
-    st.warning("⚠️ **請確認您已經在上方表單內按下「繼續」按鈕，再點擊下方的開始按鈕！**")
-    
-    if st.button("✅ 我已確實送出表單，開始對話任務", type="primary", use_container_width=True):
+    # 逐題顯示
+    if st.session_state.q_index < len(questions):
+        current_q = questions[st.session_state.q_index]
+        st.info(f"🤔 **{current_q['q']}**", icon="💡")
+        st.write("請點擊最符合您直覺的作法：")
+        st.write("") 
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button(current_q['lc'], key=f"lc_{st.session_state.q_index}", use_container_width=True):
+                st.session_state.q_index += 1
+                st.rerun()
+        with col2:
+            if st.button(current_q['hc'], key=f"hc_{st.session_state.q_index}", use_container_width=True):
+                st.session_state.hc_score += 1 # 選了高語境選項，分數 +1
+                st.session_state.q_index += 1
+                st.rerun()
+    else:
+        # 🔥 核心邏輯：測驗結束，根據 hc_score 精準配對機器人風格
+        if st.session_state.hc_score >= 1:
+            st.session_state.bot_style = "高語境 (High-Context)"
+        else:
+            st.session_state.bot_style = "低語境 (Low-Context)"
+            
         st.session_state.stage = "chat_task"
         st.rerun()
 
 # ==========================================
-# 階段二：核心對話任務 (真實 AI 串接版)
+# 階段二：核心對話任務 (依據測驗結果配對)
 # ==========================================
 elif st.session_state.stage == "chat_task":
     st.write("### 步驟二：客服互動體驗")
@@ -60,7 +79,7 @@ elif st.session_state.stage == "chat_task":
         icon="👕"
     )
     
-    # 1. 根據分派的風格，設定 AI 的系統人設
+    # 1. 根據前測分派的風格，設定 AI 的系統人設
     if "system_prompt_set" not in st.session_state:
         if st.session_state.bot_style == "高語境 (High-Context)":
             sys_prompt = """你是一家網路商城的客服，請嚴格遵循以下「高語境溝通」規則來回覆使用者：
@@ -94,12 +113,12 @@ elif st.session_state.stage == "chat_task":
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
             
+            # 使用 GPT-4o-mini 並加入 temperature 控制
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=st.session_state.messages,
                 temperature=0.3
             )
-            
             bot_reply = response.choices[0].message.content
             message_placeholder.markdown(bot_reply)
         
@@ -107,39 +126,46 @@ elif st.session_state.stage == "chat_task":
             
     st.divider()
     
-    # 4. 互動次數防呆機制
+    # 4. 互動次數防呆機制 (設定至少要對話 3 次)
     user_msg_count = sum(1 for msg in st.session_state.messages if msg["role"] == "user")
-    MIN_INTERACTIONS = 1
+    MIN_INTERACTIONS = 3
     
     if user_msg_count >= MIN_INTERACTIONS:
-        if st.button("✅ 任務已完成，結束對話並進行後測", type="primary", use_container_width=True):
+        if st.button("✅ 任務已完成，結束對話並進行問卷", type="primary", use_container_width=True):
             st.session_state.stage = "finish"
             st.rerun()
     else:
         remain = MIN_INTERACTIONS - user_msg_count
         if user_msg_count == 0:
-            st.caption(f"👈 請在下方輸入框與客服對話。為確保體驗完整，請至少進行 **{MIN_INTERACTIONS} 次** 訊息傳送。")
+            st.caption(f"👈 請在下方輸入框與客服對話。需至少進行 **{MIN_INTERACTIONS} 次** 訊息傳送才會出現結束按鈕。")
         else:
-            st.caption(f"💬 對話進行中... 請**再發送 {remain} 則訊息**與機器人互動，結束任務的按鈕就會出現喔！")
+            st.caption(f"💬 對話進行中... 請**再發送 {remain} 則訊息**與機器人互動。")
 
 # ==========================================
-# 階段三：填寫後測 Google 表單 (嵌入版)
+# 階段三：嵌入後測 Google 表單 (自動帶入 ID、風格與分數)
 # ==========================================
 elif st.session_state.stage == "finish":
     st.success("🎉 對話任務已完成！非常感謝您的配合。")
-    st.write("### 步驟三：完成後測問卷")
-    st.write("請直接在下方框框內填寫最後的滿意度問卷，填寫完畢並按下「提交」即完成本次實驗。")
+    st.write("### 步驟三：完成滿意度問卷")
+    st.write("請直接在下方框框內填寫最後的問卷，填寫完畢並按下「提交」即完成本次實驗。")
     
-    # 提示受測者他們遇到的風格，以便回答問卷
-    # st.info(f"💡 提醒您：您剛才體驗的機器人風格為 **{st.session_state.bot_style}**。若問卷中有詢問，請以此為準填寫喔！")
+    # ⚠️【非常重要】你要修改的地方在這裡 ⬇️
+    # 1. 替換成你真實的表單網址 (保留 /viewform?embedded=true)
+    # 2. 找出表單題目對應的 entry.碼，把 11111, 22222, 33333 換掉
+    base_form_url = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform?embedded=true"
     
-    # ⬇️ 請將此處替換為你的【後測 Google 表單連結】 (記得網址結尾要有 ?embedded=true) ⬇️
-    post_test_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdBo7-W-GAzfvIeo1oZWWL1CG6gvJJSoSq871WpVA0gRon74A/viewform?usp=header?embedded=true"
+    post_test_form_url = (
+        f"{base_form_url}"
+        f"&entry.11111={st.session_state.user_id}"       # 傳送受測者 ID
+        f"&entry.22222={st.session_state.bot_style}"     # 傳送分配到的機器人風格
+        f"&entry.33333={st.session_state.hc_score}"      # 傳送前測高語境分數
+    )
     
-    # 嵌入後測表單
-    components.iframe(post_test_form_url, width=1500, height=800, scrolling=True)
+    # 嵌入 Google 表單 (height=1200 可確保手機版不用瘋狂滑動)
+    components.iframe(post_test_form_url, width=700, height=1200, scrolling=True)
     
     st.divider()
-    if st.button("重新開始一筆新測試"):
+    # 開放給受測者前，可將此除錯按鈕註解掉
+    if st.button("重新開始一筆新測試 (僅供測試除錯用)"):
         st.session_state.clear()
         st.rerun()
