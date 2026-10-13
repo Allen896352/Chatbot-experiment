@@ -34,7 +34,7 @@ if st.session_state.stage == "welcome":
     st.write("歡迎參與本次研究！請直接在下方框框內填寫前測問卷，填寫完畢請務必點擊表單最下方的「提交」。")
     
     # ⬇️ 請將此處替換為你的【前測 Google 表單連結】 (記得網址結尾要有 ?embedded=true) ⬇️
-    pre_test_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSf0Y09qP_7kAX5D2V0B7LnZFFlaLpuj-iQ9-zDXHhV2kypepQ/viewform?usp=header?embedded=true"
+    pre_test_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdBo7-W-GAzfvIeo1oZWWL1CG6gvJJSoSq871WpVA0gRon74A/viewform?usp=header?embedded=true"
     
     # 在網頁中嵌入表單 (可根據需要調整 height 高度)
     components.iframe(pre_test_form_url, width=700, height=800, scrolling=True)
@@ -134,7 +134,7 @@ elif st.session_state.stage == "finish":
     st.info(f"💡 提醒您：您剛才體驗的機器人風格為 **{st.session_state.bot_style}**。若問卷中有詢問，請以此為準填寫喔！")
     
     # ⬇️ 請將此處替換為你的【後測 Google 表單連結】 (記得網址結尾要有 ?embedded=true) ⬇️
-    post_test_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSf0Y09qP_7kAX5D2V0B7LnZFFlaLpuj-iQ9-zDXHhV2kypepQ/viewform?usp=header?embedded=true"
+    post_test_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdBo7-W-GAzfvIeo1oZWWL1CG6gvJJSoSq871WpVA0gRon74A/viewform?usp=header?embedded=true"
     
     # 嵌入後測表單
     components.iframe(post_test_form_url, width=700, height=1000, scrolling=True)
