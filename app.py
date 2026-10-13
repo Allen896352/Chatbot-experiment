@@ -37,7 +37,7 @@ if st.session_state.stage == "welcome":
     pre_test_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdBo7-W-GAzfvIeo1oZWWL1CG6gvJJSoSq871WpVA0gRon74A/viewform?usp=header?embedded=true"
     
     # 在網頁中嵌入表單 (可根據需要調整 height 高度)
-    components.iframe(pre_test_form_url, width=1200, height=1000, scrolling=True)
+    components.iframe(pre_test_form_url, width=1500, height=800, scrolling=True)
     
     st.divider()
     st.warning("⚠️ **請確認您已經在上方表單內按下「繼續」按鈕，再點擊下方的開始按鈕！**")
@@ -137,7 +137,7 @@ elif st.session_state.stage == "finish":
     post_test_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdBo7-W-GAzfvIeo1oZWWL1CG6gvJJSoSq871WpVA0gRon74A/viewform?usp=header?embedded=true"
     
     # 嵌入後測表單
-    components.iframe(post_test_form_url, width=1200, height=1000, scrolling=True)
+    components.iframe(post_test_form_url, width=1500, height=800, scrolling=True)
     
     st.divider()
     if st.button("重新開始一筆新測試"):
