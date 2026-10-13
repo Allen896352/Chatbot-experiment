@@ -4,7 +4,6 @@ import uuid
 import random
 from openai import OpenAI
 
-
 # ==========================================
 # 網頁基本設定 (必須放在最上方)
 # ==========================================
@@ -112,7 +111,7 @@ elif st.session_state.stage == "chat_task":
     
     st.info(
         "💡 **【任務情境說明】**\n\n"
-        "假設您上週在網路商城買了一件「衣服」，但收到包裹後發現「衣服上有明顯的瑕疵（例如破洞或大片污漬）」。\n\n"
+        "假設您上週在網路商城買了一件**「衣服」**，但收到包裹後發現**「衣服上有明顯的瑕疵（例如破洞或大片污漬）」**。\n\n"
         "👉 **您的任務：** 請透過下方的對話框，向客服機器人說明商品狀況，並**詢問該如何辦理退貨或換貨**。\n\n"
         "*(請盡量像平常遇到客訴情況一樣，自然地與機器人進行對話)*",
         icon="👕"
@@ -166,7 +165,7 @@ elif st.session_state.stage == "chat_task":
     
     # 4. 互動次數防呆機制
     user_msg_count = sum(1 for msg in st.session_state.messages if msg["role"] == "user")
-    MIN_INTERACTIONS = 1
+    MIN_INTERACTIONS = 3
     
     if user_msg_count >= MIN_INTERACTIONS:
         if st.button("✅ 任務已完成，結束對話並進行問卷", type="primary", use_container_width=True):
@@ -188,9 +187,9 @@ elif st.session_state.stage == "finish":
     st.write("請直接在下方框框內填寫最後的問卷，填寫完畢並按下「提交」即完成本次實驗。")
     
     # ⚠️【上線前必改】替換成你真實的表單網址與 entry ID
-    base_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSewWNdtHlANTFKhX8aitS-NLaYzvU972dkELGW5L8mvlDqQMg/viewform?embedded=true"
+    base_form_url = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform?embedded=true"
     
-post_test_form_url = (
+    post_test_form_url = (
         f"{base_form_url}"
         f"&entry.11111={st.session_state.user_id}"          # 1. 專屬 ID
         f"&entry.22222={st.session_state.bot_style}"        # 2. 分配風格
@@ -201,9 +200,6 @@ post_test_form_url = (
         f"&entry.77777={st.session_state.exp_shopping}"     # 7. 網購頻率
         f"&entry.88888={st.session_state.exp_bot}"          # 8. 客服機器人經驗
     )
-    
-    # 🐛 除錯小幫手：你可以點這個連結看看參數有沒有成功帶入
-    # st.markdown(f"[👉 點擊這裡開啟原始表單測試]({post_test_form_url})")
     
     # 嵌入 Google 表單
     components.iframe(post_test_form_url, width=700, height=1200, scrolling=True)
