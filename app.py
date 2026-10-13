@@ -3,6 +3,7 @@ import streamlit.components.v1 as components
 import uuid
 import random
 from openai import OpenAI
+import urllib.parse
 
 # ==========================================
 # 網頁基本設定 (必須放在最上方)
@@ -186,20 +187,30 @@ elif st.session_state.stage == "finish":
     st.write("### 步驟三：完成滿意度問卷")
     st.write("請直接在下方框框內填寫最後的問卷，填寫完畢並按下「提交」即完成本次實驗。")
     
-    # ⚠️【上線前必改】替換成你真實的表單網址與 entry ID
-    base_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSewWNdtHlANTFKhX8aitS-NLaYzvU972dkELGW5L8mvlDqQMg/viewform?embedded=true"
+    # ⚠️ 關鍵修復1：網址必須加上 usp=pp_url，Google 表單才會知道這是預先填寫的資料
+    base_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSewWNdtHlANTFKhX8aitS-NLaYzvU972dkELGW5L8mvlDqQMg/viewform?usp=pp_url&embedded=true"
+    
+    # ⚠️ 關鍵修復2：將包含中文或特殊符號的變數，轉換為網址安全格式 (URL Encoding)
+    safe_bot_style = urllib.parse.quote(st.session_state.bot_style)
+    safe_gender = urllib.parse.quote(st.session_state.gender)
+    safe_age = urllib.parse.quote(st.session_state.age)
+    safe_exp_shopping = urllib.parse.quote(st.session_state.exp_shopping)
+    safe_exp_bot = urllib.parse.quote(st.session_state.exp_bot)
     
     post_test_form_url = (
         f"{base_form_url}"
-        f"&entry.235439592={st.session_state.user_id}"          # 1. 專屬 ID
-        f"&entry.291326502={st.session_state.bot_style}"        # 2. 分配風格
-        f"&entry.401818618={st.session_state.hc_score}"         # 3. 高語境總分
-        f"&entry.1146105863={st.session_state.lc_score}"         # 4. 低語境總分
-        f"&entry.1418272599={st.session_state.gender}"           # 5. 性別
-        f"&entry.1204605564={st.session_state.age}"              # 6. 年齡
-        f"&entry.417434269={st.session_state.exp_shopping}"     # 7. 網購頻率
-        f"&entry.455003621={st.session_state.exp_bot}"          # 8. 客服機器人經驗
+        f"&entry.235439592={st.session_state.user_id}"          # 1. 專屬 ID (英數字不需轉碼)
+        f"&entry.291326502={safe_bot_style}"                    # 2. 分配風格 (轉碼後)
+        f"&entry.401818618={st.session_state.hc_score}"         # 3. 高語境總分 (數字不需轉碼)
+        f"&entry.1146105863={st.session_state.lc_score}"        # 4. 低語境總分 (數字不需轉碼)
+        f"&entry.1418272599={safe_gender}"                      # 5. 性別 (轉碼後)
+        f"&entry.1204605564={safe_age}"                         # 6. 年齡 (轉碼後)
+        f"&entry.417434269={safe_exp_shopping}"                 # 7. 網購頻率 (轉碼後)
+        f"&entry.455003621={safe_exp_bot}"                      # 8. 客服機器人經驗 (轉碼後)
     )
+    
+    # 🐛 測試用連結：你可以先點擊這個連結，看看新分頁打開有沒有成功帶入
+    st.markdown(f"[👉 如果下方表單沒出現字，請點我開新分頁測試]({post_test_form_url})")
     
     # 嵌入 Google 表單
     components.iframe(post_test_form_url, width=700, height=1200, scrolling=True)
