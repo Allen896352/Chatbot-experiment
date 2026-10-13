@@ -18,7 +18,7 @@ client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # 初始化 session_state 變數，控制實驗流程
 if "stage" not in st.session_state:
-    st.session_state.stage = "welcome"  # 初始設定為歡迎與前測頁面
+    st.session_state.stage = "welcome"  # 初始設定為歡迎與語境測量頁面
     # 一進來就隨機分配機器人風格
     st.session_state.bot_style =random.choice(["高語境 (High-Context)", "低語境 (Low-Context)"])
     #random.choice(["高語境 (High-Context)", "低語境 (Low-Context)"]) 如果要隨機的話
@@ -30,8 +30,8 @@ st.title("AI 聊天機器人溝通風格體驗研究")
 # 階段一：填寫前測 Google 表單
 # ==========================================
 if st.session_state.stage == "welcome":
-    st.write("### 步驟一：填寫基本資料與前測")
-    st.write("歡迎參與本次研究！在開始與機器人對話之前，請先點擊下方連結填寫人口統計資料與前測問卷。")
+    st.write("### 步驟一：填寫基本資料與語境測量")
+    st.write("歡迎參與本次研究！在開始與機器人對話之前，請先點擊下方連結填寫人口統計資料與語境測量問卷。")
     
     # ⬇️ 預留的前測 Google 表單連結位子 ⬇️
     pre_test_url = "https://forms.gle/YOUR_PRE_TEST_FORM_LINK_HERE"
@@ -39,7 +39,7 @@ if st.session_state.stage == "welcome":
     
     st.info("💡 填寫完畢後，請**保留表單分頁不要關閉**（稍後對話完需繼續填寫），並回到本網頁點擊下方按鈕。")
     
-    if st.button("我已完成前測，開始對話任務", type="primary", use_container_width=True):
+    if st.button("我已完成語境測量，開始對話任務", type="primary", use_container_width=True):
         st.session_state.stage = "chat_task"
         st.rerun()
 
