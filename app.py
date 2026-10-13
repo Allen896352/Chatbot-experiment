@@ -209,8 +209,6 @@ elif st.session_state.stage == "finish":
         f"&entry.455003621={safe_exp_bot}"                      # 8. 客服機器人經驗 (轉碼後)
     )
     
-    # 🐛 測試用連結：你可以先點擊這個連結，看看新分頁打開有沒有成功帶入
-    st.markdown(f"[👉 如果下方表單沒出現字，請點我開新分頁測試]({post_test_form_url})")
     
     # 嵌入 Google 表單
     components.iframe(post_test_form_url, width=700, height=1200, scrolling=True)
