@@ -3,6 +3,7 @@ import streamlit.components.v1 as components
 import uuid
 import random
 from openai import OpenAI
+import urllib.parse
 
 # ==========================================
 # 網頁基本設定 (必須放在最上方)
@@ -189,17 +190,27 @@ elif st.session_state.stage == "finish":
     # ⚠️【上線前必改】替換成你真實的表單網址與 entry ID
     base_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSewWNdtHlANTFKhX8aitS-NLaYzvU972dkELGW5L8mvlDqQMg/viewform?embedded=true"
     
+ # 🌟 關鍵修復：將包含中文或特殊符號的變數，轉換為網址安全格式
+    safe_bot_style = urllib.parse.quote(st.session_state.bot_style)
+    safe_gender = urllib.parse.quote(st.session_state.gender)
+    safe_age = urllib.parse.quote(st.session_state.age)
+    safe_exp_shopping = urllib.parse.quote(st.session_state.exp_shopping)
+    safe_exp_bot = urllib.parse.quote(st.session_state.exp_bot)
+
     post_test_form_url = (
         f"{base_form_url}"
-        f"&entry.235439592={st.session_state.user_id}"          # 1. 專屬 ID
-        f"&entry.291326502={st.session_state.bot_style}"        # 2. 分配風格
-        f"&entry.401818618={st.session_state.hc_score}"         # 3. 高語境總分
-        f"&entry.1146105863={st.session_state.lc_score}"         # 4. 低語境總分
-        f"&entry.1418272599={st.session_state.gender}"           # 5. 性別
-        f"&entry.1204605564={st.session_state.age}"              # 6. 年齡
-        f"&entry.417434269={st.session_state.exp_shopping}"     # 7. 網購頻率
-        f"&entry.455003621={st.session_state.exp_bot}"          # 8. 客服機器人經驗
+        f"&entry.235439592={st.session_state.user_id}"       
+        f"&entry.291326502={safe_bot_style}"      # 改用安全格式           
+        f"&entry.401818618={st.session_state.hc_score}"      
+        f"&entry.1146105863={st.session_state.lc_score}"     
+        f"&entry.1418272599={safe_gender}"        # 改用安全格式              
+        f"&entry.1204605564={safe_age}"           # 改用安全格式              
+        f"&entry.417434269={safe_exp_shopping}"   # 改用安全格式              
+        f"&entry.455003621={safe_exp_bot}"        # 改用安全格式              
     )
+    
+    # 🐛 除錯小幫手：你可以點這個連結看看參數有沒有成功帶入
+    # st.markdown(f"[👉 點擊這裡開啟原始表單測試]({post_test_form_url})")
     
     # 嵌入 Google 表單
     components.iframe(post_test_form_url, width=700, height=1200, scrolling=True)
