@@ -3,7 +3,7 @@ import streamlit.components.v1 as components
 import uuid
 import random
 from openai import OpenAI
-import urllib.parse
+import urllib.parse  # 用來處理中文網址編碼
 
 # ==========================================
 # 網頁基本設定 (必須放在最上方)
@@ -14,7 +14,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# 透過 Streamlit Secrets 讀取 API Key (請確保 .streamlit/secrets.toml 已設定好)
+# 透過 Streamlit Secrets 讀取 API Key
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # 初始化 session_state 變數，控制實驗流程與儲存資料
@@ -35,7 +35,7 @@ if st.session_state.stage == "pre_test":
     st.write("### 步驟一：前測問卷")
     st.write("在開始對話前，請先協助我們填寫基本資料與溝通習慣。")
     
-# 1. 建立題庫：標註每題的屬性 (HC=高語境, LC=低語境)，並手動交錯排列
+    # 1. 建立題庫：標註每題的屬性 (HC=高語境, LC=低語境)，並手動交錯排列
     if "shuffled_questions" not in st.session_state:
         questions = [
             {"id": "q1", "text": "即使別人沒有直接說出來，我也能察覺他們的意思。", "type": "HC"},
@@ -47,22 +47,23 @@ if st.session_state.stage == "pre_test":
             {"id": "q4", "text": "我在與他人溝通時會盡力保持關係的和諧。", "type": "HC"},
             {"id": "q8", "text": "我很樂意向他人透露關於我自己的私事。", "type": "LC"}
         ]
-      
         st.session_state.shuffled_questions = questions
 
     # 2. 建立作答表單
     with st.form("context_test_form"):
-        # --- 第一部分：基本資料預留區塊 ---
-        st.markdown("#### 第一部分：基本資料與使用經驗")
-        gender = st.selectbox("1. 您的性別", ["男", "女", "其他", "不願透露"])
-        age = st.selectbox("2. 您的年齡", ["20歲(含)以下", "21-25歲", "26-30歲", "31-40歲", "41歲以上"])
-        exp_shopping = st.selectbox("3. 您平時網購的頻率大約是？", ["每週至少一次", "每個月一到兩次", "每半年一次", "幾乎不網購"])
-        exp_bot = st.selectbox("4. 您過去與「網購客服機器人」互動的經驗為何？", ["經常使用", "偶爾使用", "很少使用", "從未使用"])
+        # --- 第一部分：人口統計與 AI Chatbot 使用背景 ---
+        st.markdown("#### 2.1 人口統計與 AI Chatbot 使用背景")
+        age = st.selectbox("1. 年齡", ["小於 19 歲", "20-29 歲", "30-39 歲", "40-49 歲", "大於 50 歲"])
+        gender = st.selectbox("2. 性別", ["男性", "女性", "其他"])
+        # ⚠️ 更新：依照圖片加入了「高中以下」選項
+        education = st.selectbox("3. 學歷", ["高中以下", "高中", "大學/大專", "碩士", "博士"])
+        bot_freq = st.selectbox("4. Chatbot 使用頻率", ["每天", "每周很多次", "每月很多次", "不常使用", "從不使用"])
+        bot_familiarity = st.selectbox("5. 對聊天機器人的熟悉程度", ["非常熟悉", "熟悉", "普通", "不熟悉", "完全不熟悉"])
         
         st.divider() 
         
         # --- 第二部分：語境評估 ---
-        st.markdown("#### 第二部分：溝通風格評估")
+        st.markdown("#### 2.2 溝通風格評估")
         st.write("請評估以下描述（1=非常不同意，7=非常同意）：")
         options = [1, 2, 3, 4, 5, 6, 7] 
         responses = {}
@@ -75,11 +76,12 @@ if st.session_state.stage == "pre_test":
         submitted = st.form_submit_button("✅ 送出並開始對話", type="primary", use_container_width=True)
         
         if submitted:
-            # 將基本資料存入 session_state
-            st.session_state.gender = gender
+            # 將新的 5 項基本資料存入 session_state
             st.session_state.age = age
-            st.session_state.exp_shopping = exp_shopping
-            st.session_state.exp_bot = exp_bot
+            st.session_state.gender = gender
+            st.session_state.education = education
+            st.session_state.bot_freq = bot_freq
+            st.session_state.bot_familiarity = bot_familiarity
             
             hc_total = 0
             lc_total = 0
@@ -95,11 +97,8 @@ if st.session_state.stage == "pre_test":
             st.session_state.hc_score = hc_total
             st.session_state.lc_score = lc_total
             
-            # 4. 判定邏輯：分數高者得勝 (若同分則預設分配高語境)
-            if hc_total >= lc_total:
-                st.session_state.bot_style = "高語境 (High-Context)"
-            else:
-                st.session_state.bot_style = "低語境 (Low-Context)"
+            # 4. 判定邏輯：強制隨機分配 (A/B Test 實驗組與對照組)
+            st.session_state.bot_style = random.choice(["高語境 (High-Context)", "低語境 (Low-Context)"])
                 
             st.session_state.stage = "chat_task"
             st.rerun()
@@ -180,41 +179,41 @@ elif st.session_state.stage == "chat_task":
             st.caption(f"💬 對話進行中... 請**再發送 {remain} 則訊息**與機器人互動。")
 
 # ==========================================
-# 階段三：嵌入後測 Google 表單 (自動帶入 8 項變數)
+# 階段三：嵌入後測 Google 表單 (自動帶入 9 項變數)
 # ==========================================
 elif st.session_state.stage == "finish":
     st.success("🎉 對話任務已完成！非常感謝您的配合。")
     st.write("### 步驟三：完成滿意度問卷")
     st.write("請直接在下方框框內填寫最後的問卷，填寫完畢並按下「提交」即完成本次實驗。")
     
-    # ⚠️ 關鍵修復1：網址必須加上 usp=pp_url，Google 表單才會知道這是預先填寫的資料
     base_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSewWNdtHlANTFKhX8aitS-NLaYzvU972dkELGW5L8mvlDqQMg/viewform?usp=pp_url&embedded=true"
     
-    # ⚠️ 關鍵修復2：將包含中文或特殊符號的變數，轉換為網址安全格式 (URL Encoding)
+    # 將包含中文或特殊符號的變數，轉換為網址安全格式 (URL Encoding)
     safe_bot_style = urllib.parse.quote(st.session_state.bot_style)
-    safe_gender = urllib.parse.quote(st.session_state.gender)
     safe_age = urllib.parse.quote(st.session_state.age)
-    safe_exp_shopping = urllib.parse.quote(st.session_state.exp_shopping)
-    safe_exp_bot = urllib.parse.quote(st.session_state.exp_bot)
+    safe_gender = urllib.parse.quote(st.session_state.gender)
+    safe_education = urllib.parse.quote(st.session_state.education)
+    safe_bot_freq = urllib.parse.quote(st.session_state.bot_freq)
+    safe_bot_familiarity = urllib.parse.quote(st.session_state.bot_familiarity)
     
+    # ⚠️ 已經完美對接你抓出來的 9 個 ID
     post_test_form_url = (
         f"{base_form_url}"
-        f"&entry.235439592={st.session_state.user_id}"          # 1. 專屬 ID (英數字不需轉碼)
-        f"&entry.291326502={safe_bot_style}"                    # 2. 分配風格 (轉碼後)
-        f"&entry.401818618={st.session_state.hc_score}"         # 3. 高語境總分 (數字不需轉碼)
-        f"&entry.1146105863={st.session_state.lc_score}"        # 4. 低語境總分 (數字不需轉碼)
-        f"&entry.1418272599={safe_gender}"                      # 5. 性別 (轉碼後)
-        f"&entry.1204605564={safe_age}"                         # 6. 年齡 (轉碼後)
-        f"&entry.417434269={safe_exp_shopping}"                 # 7. 網購頻率 (轉碼後)
-        f"&entry.455003621={safe_exp_bot}"                      # 8. 客服機器人經驗 (轉碼後)
+        f"&entry.235439592={st.session_state.user_id}"          # ID 
+        f"&entry.291326502={safe_bot_style}"                    # 風格
+        f"&entry.401818618={st.session_state.hc_score}"         # 高語境分
+        f"&entry.1146105863={st.session_state.lc_score}"        # 低語境分
+        f"&entry.1204605564={safe_age}"                         # 年齡 
+        f"&entry.1418272599={safe_gender}"                      # 性別          
+        f"&entry.745662331={safe_education}"                    # 學歷 (新 ID: GGG)
+        f"&entry.417434269={safe_bot_freq}"                     # 使用頻率 
+        f"&entry.455003621={safe_bot_familiarity}"              # 熟悉程度
     )
-
     
-# 嵌入 Google 表單
+    # 縮短 iframe 高度至 600，解決提交後的白畫面問題
     components.iframe(post_test_form_url, width=700, height=600, scrolling=True)
     
     st.divider()
-    # 開放給受測者前，可將此測試用重置按鈕刪除或註解掉
     if st.button("重新開始一筆新測試 (僅供測試除錯用)"):
         st.session_state.clear()
         st.rerun()
