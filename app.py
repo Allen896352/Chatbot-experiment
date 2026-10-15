@@ -60,7 +60,7 @@ if st.session_state.stage == "consent":
     agree = st.checkbox("🔴 **以上問卷知情說明：我已閱讀並同意參與本研究**")
     
     # 判斷是否打勾才能進入下一步
-    if st.button("下一步：開始填寫前測問卷", type="primary", use_container_width=True):
+    if st.button("下一步：開始填寫語境測試問卷", type="primary", use_container_width=True):
         if agree:
             st.session_state.stage = "pre_test"
             st.rerun()
