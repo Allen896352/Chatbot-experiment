@@ -19,19 +19,59 @@ client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # 初始化 session_state 變數，控制實驗流程與儲存資料
 if "stage" not in st.session_state:
-    st.session_state.stage = "pre_test"  # 初始階段：前測
+    st.session_state.stage = "consent"  # ⚠️ 初始階段改為：知情同意書
     st.session_state.user_id = str(uuid.uuid4())[:8] # 產生 8 碼的專屬受測者 ID
     st.session_state.hc_score = 0
     st.session_state.lc_score = 0
     st.session_state.bot_style = ""
     st.session_state.messages = []
 
-st.title("🛍️ 網購客服 AI 互動測試")
+# ==========================================
+# 階段零：知情同意書 (新增區塊)
+# ==========================================
+if st.session_state.stage == "consent":
+    st.title("📝 AI 聊天機器人回覆風格與使用者互動體驗調查")
+    
+    # 使用 container 排版文字，加上淡淡的邊框增加正式感
+    with st.container(border=True):
+        st.markdown("""
+        **同學您好：**
+        
+        這是一份由企業管理系學生製作的調查問卷，主要希望透過本問卷探討 AI 聊天機器人溝通風格與使用者語境傾向契合度對再次使用意圖之影響，調查對象為不限年齡之全體民眾。問卷內容共 8 個區段，約需 5-10 分鐘，感謝您撥冗填答。
+        
+        本問卷採不記名及無法辨識個人的方式作答，電子資料保存至整個研究後即銷毀。研究團隊將盡力維護您的隱私及善盡保密責任，您所提供的所有資料皆嚴格保密。本研究填寫亦不會影響個人成績。
+        
+        此研究未來發表採整體分析，您不會被辨識出，將發表於學位論文，亦無衍生的商業利益。
+        
+        請您自由決定是否填寫，亦可中途不填寫，無需感到壓力。惟一旦繳交，本問卷無記名且無編碼，研究團隊將無法辨識本問卷，恕無法刪除您填寫的內容。
+        
+        若您想詢問本問卷內容，或有興趣得知研究結果，此研究將於完成後，歡迎您依照下述聯絡方式索取研究結果摘要。
+        （計畫聯絡人：劉瀚澤，Email: 11245019@ntub.edu.tw）
+        
+        ---
+        **台北商業大學企業管理學系**  
+        **研究學生：** 彭昱綺、劉瀚澤、邱郁翔  
+        **指導教授：** 顏嬿真 老師
+        """)
+        
+    st.write("") # 排版留白
+    
+    # 同意核取方塊
+    agree = st.checkbox("🔴 **以上問卷知情說明：我已閱讀並同意參與本研究**")
+    
+    # 判斷是否打勾才能進入下一步
+    if st.button("下一步：開始填寫前測問卷", type="primary", use_container_width=True):
+        if agree:
+            st.session_state.stage = "pre_test"
+            st.rerun()
+        else:
+            st.error("⚠️ 請先勾選「同意」知情說明，才能開始進行測驗喔！")
 
 # ==========================================
 # 階段一：基本資料與語境判斷 (系統自動計分)
 # ==========================================
-if st.session_state.stage == "pre_test":
+elif st.session_state.stage == "pre_test":
+    st.title("🛍️ 網購客服 AI 互動測試")
     st.write("### 步驟一：語境測試問卷")
     st.write("在開始對話前，請先協助我們填寫基本資料與溝通習慣。")
     
@@ -184,6 +224,9 @@ elif st.session_state.stage == "finish":
     st.success("🎉 對話任務已完成！非常感謝您的配合。")
     st.write("### 步驟三：完成滿意度問卷")
     st.write("請直接在下方框框內填寫最後的問卷，填寫完畢並按下「提交」即完成本次實驗。")
+    
+    # ⚠️ 視覺防呆提醒
+    st.warning("⚠️ **填寫提醒：** 當您滑到表單最下方的「系統專用區」時，請勿修改裡面的任何亂碼與數字，**直接點擊最底部的『提交』按鈕即可！**", icon="🚨")
     
     base_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSewWNdtHlANTFKhX8aitS-NLaYzvU972dkELGW5L8mvlDqQMg/viewform?usp=pp_url&embedded=true"
     
