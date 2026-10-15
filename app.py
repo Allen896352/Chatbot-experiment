@@ -199,12 +199,12 @@ elif st.session_state.stage == "finish":
     post_test_form_url = (
         f"{base_form_url}"
         f"&entry.235439592={st.session_state.user_id}"          # ID 
-        f"&entry.291326502={safe_bot_style}"                    # 風格
+        f"&entry.291326502={safe_bot_style}"                    # 系統隨機分配風格
         f"&entry.401818618={st.session_state.hc_score}"         # 高語境分
         f"&entry.1146105863={st.session_state.lc_score}"        # 低語境分
         f"&entry.1204605564={safe_age}"                         # 年齡 
         f"&entry.1418272599={safe_gender}"                      # 性別          
-        f"&entry.745662331={safe_education}"                    # 學歷 (新 ID: GGG)
+        f"&entry.745662331={safe_education}"                    # 最高學歷 
         f"&entry.417434269={safe_bot_freq}"                     # 使用頻率 
         f"&entry.455003621={safe_bot_familiarity}"              # 熟悉程度
     )
