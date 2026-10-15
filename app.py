@@ -30,7 +30,7 @@ if "stage" not in st.session_state:
 # 階段零：知情同意書 (新增區塊)
 # ==========================================
 if st.session_state.stage == "consent":
-    st.title("📝 AI 聊天機器人回覆風格與使用者互動體驗調查")
+    st.title("知情同意書")
     
     # 使用 container 排版文字，加上淡淡的邊框增加正式感
     with st.container(border=True):
