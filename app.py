@@ -148,13 +148,17 @@ elif st.session_state.stage == "pre_test":
 elif st.session_state.stage == "chat_task":
     st.write("### 步驟二：客服互動體驗")
     
-    st.info(
-        "💡 **【任務情境說明】**\n\n"
-        "假設您上週在網路商城買了一件「衣服」，但收到包裹後發現「衣服上有明顯的瑕疵（例如破洞或大片污漬）」。\n\n"
-        "👉 **您的任務：** 請透過下方的對話框，向客服機器人說明商品狀況，並**詢問該如何辦理退貨或換貨**。\n\n"
-        "*(請盡量像平常遇到客訴情況一樣，自然地與機器人進行對話)*",
-        icon="👕"
-    )
+st.info(
+    " 💡 **【任務情境說明】**\n\n"
+    "假設您正在規劃下個月的國內小旅行，看中了一間熱門民宿，但網頁上的資訊不夠完整，您需要向客服確認多項細節。\n\n"
+    "👉 **您的任務：** 請透過下方對話框，向 AI 客服詢問訂房，並在對話中**分次確認以下 4 個條件**：\n"
+    "1. 詢問下個月特定週末（可隨意假設日期）是否有雙人房\n"
+    "2. 說明預計會帶一隻寵物（小型犬），詢問是否可以入住\n"
+    "3. 詢問民宿是否有提供火車站的接駁服務\n"
+    "4. 確認目前的房價方案是否有包含隔日的早餐\n\n"
+    "*(請像平常與客服對話一樣，一來一往地提出問題，直到上述條件都確認完畢)*",
+    icon="🏠"
+)
     
     # 1. 根據前測分派的風格，設定 AI 的系統人設
     if "system_prompt_set" not in st.session_state:
@@ -182,7 +186,7 @@ elif st.session_state.stage == "chat_task":
                 st.markdown(msg["content"])
             
     # 3. 接收使用者輸入與呼叫 API
-    if prompt := st.chat_input("請輸入您的訊息... (例如：你好，衣服有瑕疵要怎麼換)"):
+    if prompt := st.chat_input("請輸入您的訊息... (例如：你好，我想詢問下週末的訂位)"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
