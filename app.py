@@ -173,6 +173,7 @@ elif st.session_state.stage == "chat_task":
             4. 情感協助與共感：表現出主動傾聽與同理心，營造專屬私密對話夥伴的陪伴氛圍與安全空間。
             5. 情境脈絡補充：回覆時適度補充背景原因、故事性說明或關懷提醒，提供豐富的情境資訊。
             6. 不要像傳統訂位系統一樣，強制要求客人先提供「確切時間、姓名或電話」才能繼續對話。請順著客人的假設性提問直接回答，並引導他們提出下一個需求。"""
+            #6. 我自己加的 到時候研究方法要備註
         else:
             sys_prompt = """你是一家知名餐廳的客服，請嚴格遵循以下「低語境溝通」規則來回覆使用者：
             1. 直接開門見山：省略所有社交閒聊與客套話，第一句話即直接給出問題的核心解答。
@@ -180,6 +181,7 @@ elif st.session_state.stage == "chat_task":
             3. 結構化與簡潔版面：善用條列式與清晰結構呈現資訊，方便快速擷取重點。
             4. 客觀與對話控制：保持專業客觀語氣，不添加個人情感評價，給予使用者高度的對話流程掌控權。
             5. 嚴禁反問使用者「確切用餐時間、聯絡人姓名或電話」。請將重點完全放在直接回答使用者當下提出的問題，確保使用者能順暢完成資訊查詢。"""
+            #6. 我自己加的 到時候研究方法要備註
         
         st.session_state.messages.append({"role": "system", "content": sys_prompt})
         st.session_state.system_prompt_set = True
@@ -213,7 +215,7 @@ elif st.session_state.stage == "chat_task":
     
     # 4. 互動次數防呆機制
     user_msg_count = sum(1 for msg in st.session_state.messages if msg["role"] == "user")
-    MIN_INTERACTIONS = 1
+    MIN_INTERACTIONS = 3
     
     if user_msg_count >= MIN_INTERACTIONS:
         if st.button("✅ 任務已完成，結束對話並進行問卷", type="primary", use_container_width=True):
@@ -265,6 +267,6 @@ elif st.session_state.stage == "finish":
     components.iframe(post_test_form_url, width=700, height=600, scrolling=True)
     
     st.divider()
-    if st.button("重新開始一筆新測試 (僅供測試除錯用)"):
+    if st.button("重新開始一筆新測試"):
         st.session_state.clear()
         st.rerun()
