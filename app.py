@@ -39,33 +39,32 @@ if st.session_state.stage == "pre_test":
     if "shuffled_questions" not in st.session_state:
         questions = [
             {"id": "q1", "text": "即使別人沒有直接說出來，我也能察覺他們的意思。", "type": "HC"},
-            {"id": "q5", "text": "我在溝通時喜歡精確無誤。", "type": "LC"},
+            {"id": "q5", "text": "我會盡量把意思表達得清楚而精確。", "type": "LC"},
             {"id": "q2", "text": "我習慣以間接的方式進行溝通。", "type": "HC"},
-            {"id": "q6", "text": "我是一個表達非常精準的溝通者。", "type": "LC"},
-            {"id": "q3", "text": "當被逼問意見時，我會以模稜兩可的立場來回應。", "type": "HC"},
-            {"id": "q7", "text": "我是一個極度開放的溝通者。", "type": "LC"},
-            {"id": "q4", "text": "我在與他人溝通時會盡力保持關係的和諧。", "type": "HC"},
-            {"id": "q8", "text": "我很樂意向他人透露關於我自己的私事。", "type": "LC"}
+            {"id": "q6", "text": "我在溝通時重視表達的準確性。", "type": "LC"},
+            {"id": "q3", "text": "當被要求明確表達意見時，我有時會以較含蓄或保留的方式回應。", "type": "HC"},
+            {"id": "q7", "text": "我傾向以開放、直接的方式與他人溝通。", "type": "LC"},
+            {"id": "q4", "text": "我在與他人溝通時，會盡力維持關係的和諧。", "type": "HC"},
+            {"id": "q8", "text": "我願意直接向他人分享與自己有關的資訊。", "type": "LC"}
         ]
         st.session_state.shuffled_questions = questions
 
     # 2. 建立作答表單
     with st.form("context_test_form"):
         # --- 第一部分：人口統計與 AI Chatbot 使用背景 ---
-        st.markdown("#### 2.1 人口統計與 AI Chatbot 使用背景")
-        age = st.selectbox("1. 年齡", ["小於 19 歲", "20-29 歲", "30-39 歲", "40-49 歲", "大於 50 歲"])
-        gender = st.selectbox("2. 性別", ["男性", "女性", "其他"])
-        # ⚠️ 更新：依照圖片加入了「高中以下」選項
-        education = st.selectbox("3. 學歷", ["高中以下", "高中", "大學/大專", "碩士", "博士"])
-        bot_freq = st.selectbox("4. Chatbot 使用頻率", ["每天", "每周很多次", "每月很多次", "不常使用", "從不使用"])
-        bot_familiarity = st.selectbox("5. 對聊天機器人的熟悉程度", ["非常熟悉", "熟悉", "普通", "不熟悉", "完全不熟悉"])
+        st.markdown("#### 第一部分：人口統計與 AI Chatbot 使用背景")
+        age = st.selectbox("1. 年齡", ["18歲以下", "19–29歲", "30–39歲", "40–49歲", "50歲以上"])
+        gender = st.selectbox("2. 性別", ["男性", "女性", "其他", "不願回答"])
+        education = st.selectbox("3. 最高學歷", ["高中以下", "高中（職）", "大專校院", "碩士", "博士"])
+        bot_freq = st.selectbox("4. AI Chatbot 使用頻率", ["每天", "每週數次", "每月數次", "很少使用", "從未使用"])
+        bot_familiarity = st.selectbox("5. 對 AI Chatbot 的熟悉程度", ["非常熟悉", "熟悉", "普通", "不熟悉", "完全不熟悉"])
         
         st.divider() 
         
         # --- 第二部分：語境評估 ---
-        st.markdown("#### 2.2 溝通風格評估")
-        st.write("請評估以下描述（1=非常不同意，7=非常同意）：")
-        options = [1, 2, 3, 4, 5, 6, 7] 
+        st.markdown("#### 第二部分：溝通風格評估")
+        st.write("請依照您平時的溝通習慣，選擇最符合您的程度：\n(1 = 非常不同意，2 = 不同意，3 = 普通，4 = 同意，5 = 非常同意)")
+        options = [1, 2, 3, 4, 5] 
         responses = {}
         
         for i, q in enumerate(st.session_state.shuffled_questions):
@@ -111,7 +110,7 @@ elif st.session_state.stage == "chat_task":
     
     st.info(
         "💡 **【任務情境說明】**\n\n"
-        "假設您上週在網路商城買了一件**「衣服」**，但收到包裹後發現**「衣服上有明顯的瑕疵（例如破洞或大片污漬）」**。\n\n"
+        "假設您上週在網路商城買了一件「衣服」，但收到包裹後發現「衣服上有明顯的瑕疵（例如破洞或大片污漬）」。\n\n"
         "👉 **您的任務：** 請透過下方的對話框，向客服機器人說明商品狀況，並**詢問該如何辦理退貨或換貨**。\n\n"
         "*(請盡量像平常遇到客訴情況一樣，自然地與機器人進行對話)*",
         icon="👕"
