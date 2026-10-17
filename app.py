@@ -75,10 +75,9 @@ elif st.session_state.stage == "pre_test":
     st.write("### 步驟一：語境測試問卷")
     st.write("在開始對話前，請先協助我們填寫基本資料與溝通習慣。")
     
-    # 1. 建立題庫：標註每題的屬性 (HC=高語境, LC=低語境)，並手動交錯排列
+    # 1. 建立題庫：標註每題的屬性 (HC=高語境, LC=低語境)，刪除信度低的 q1
     if "shuffled_questions" not in st.session_state:
         questions = [
-            {"id": "q1", "text": "即使別人沒有直接說出來，我也能察覺他們的意思。", "type": "HC"},
             {"id": "q5", "text": "我會盡量把意思表達得清楚而精確。", "type": "LC"},
             {"id": "q2", "text": "我習慣以間接的方式進行溝通。", "type": "HC"},
             {"id": "q6", "text": "我在溝通時重視表達的準確性。", "type": "LC"},
@@ -124,19 +123,24 @@ elif st.session_state.stage == "pre_test":
             
             hc_total = 0
             lc_total = 0
+            hc_count = 0
+            lc_count = 0
             
-            # 3. 系統自動分類計分
+            # 3. 系統自動分類計分 (改為計算加總與題數，以利後續算平均)
             for q in st.session_state.shuffled_questions:
                 score = responses[q["id"]]
                 if q["type"] == "HC":
                     hc_total += score
+                    hc_count += 1
                 else:
                     lc_total += score
+                    lc_count += 1
                     
-            st.session_state.hc_score = hc_total
-            st.session_state.lc_score = lc_total
+            # 計算平均數，取小數點後兩位
+            st.session_state.hc_score = round(hc_total / hc_count, 2) if hc_count > 0 else 0
+            st.session_state.lc_score = round(lc_total / lc_count, 2) if lc_count > 0 else 0
             
-            # 4. 判定邏輯：強制隨機分配 (A/B Test 實驗組與對照組)
+            # 4. 判定邏輯：強制隨機分配 (A/B Test 實驗組與對照組，維持不變)
             st.session_state.bot_style = random.choice(["高語境 (High-Context)", "低語境 (Low-Context)"])
                 
             st.session_state.stage = "chat_task"
@@ -149,7 +153,7 @@ elif st.session_state.stage == "chat_task":
     st.write("### 步驟二：客服互動體驗")
     
     st.info(
-"💡 **【任務情境說明】**\n\n"
+        "💡 **【任務情境說明】**\n\n"
         "**📍 情境背景**\n"
         "假設您準備幫家人預訂下週末的「6人慶生聚餐」。因為有長輩同行，且有家人吃全素，加上當天會開車前往，需要先跟餐廳確認一些細節。\n\n"
         "**🎯 您的任務**\n"
@@ -160,7 +164,6 @@ elif st.session_state.stage == "chat_task":
         "4. **停車便利性**：附近是否有附設免費停車場\n\n"
         "⚠️ **【填答小提醒】**\n"
         "為了模擬真實對話，**請用您平常說話的習慣發問**，並試著將上述需求「分次」提出，與 AI 客服一來一往地確認細節喔！",
-       
     )
     
     # 1. 根據前測分派的風格，設定 AI 的系統人設
@@ -173,7 +176,6 @@ elif st.session_state.stage == "chat_task":
             4. 情感協助與共感：表現出主動傾聽與同理心，營造專屬私密對話夥伴的陪伴氛圍與安全空間。
             5. 情境脈絡補充：回覆時適度補充背景原因、故事性說明或關懷提醒，提供豐富的情境資訊。
             6. 不要像傳統訂位系統一樣，強制要求客人先提供「確切時間、姓名或電話」才能繼續對話。請順著客人的假設性提問直接回答，並引導他們提出下一個需求。"""
-            #6. 我自己加的 到時候研究方法要備註
         else:
             sys_prompt = """你是一家知名餐廳的客服，請嚴格遵循以下「低語境溝通」規則來回覆使用者：
             1. 直接開門見山：省略所有社交閒聊與客套話，第一句話即直接給出問題的核心解答。
@@ -181,7 +183,6 @@ elif st.session_state.stage == "chat_task":
             3. 結構化與簡潔版面：善用條列式與清晰結構呈現資訊，方便快速擷取重點。
             4. 客觀與對話控制：保持專業客觀語氣，不添加個人情感評價，給予使用者高度的對話流程掌控權。
             5. 嚴禁反問使用者「確切用餐時間、聯絡人姓名或電話」。請將重點完全放在直接回答使用者當下提出的問題，確保使用者能順暢完成資訊查詢。"""
-            #6. 我自己加的 到時候研究方法要備註
         
         st.session_state.messages.append({"role": "system", "content": sys_prompt})
         st.session_state.system_prompt_set = True
@@ -252,10 +253,10 @@ elif st.session_state.stage == "finish":
     # ⚠️ 已經完美對接你抓出來的 9 個 ID
     post_test_form_url = (
         f"{base_form_url}"
-        f"&entry.235439592={st.session_state.user_id}"         # ID 
-        f"&entry.291326502={safe_bot_style}"                   # 系統隨機分配風格
-        f"&entry.401818618={st.session_state.hc_score}"         # 高語境分
-        f"&entry.1146105863={st.session_state.lc_score}"        # 低語境分
+        f"&entry.235439592={st.session_state.user_id}"          # ID 
+        f"&entry.291326502={safe_bot_style}"                    # 系統隨機分配風格
+        f"&entry.401818618={st.session_state.hc_score}"         # 高語境分 (現在是平均分數)
+        f"&entry.1146105863={st.session_state.lc_score}"        # 低語境分 (現在是平均分數)
         f"&entry.1204605564={safe_age}"                         # 年齡 
         f"&entry.1418272599={safe_gender}"                      # 性別          
         f"&entry.745662331={safe_education}"                    # 最高學歷 
