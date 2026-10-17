@@ -120,6 +120,15 @@ elif st.session_state.stage == "pre_test":
             st.session_state.education = education
             st.session_state.bot_freq = bot_freq
             st.session_state.bot_familiarity = bot_familiarity
+
+            # 🔴 新增：單獨儲存 7 題的個別分數
+            st.session_state.score_q5 = responses["q5"]
+            st.session_state.score_q2 = responses["q2"]
+            st.session_state.score_q6 = responses["q6"]
+            st.session_state.score_q3 = responses["q3"]
+            st.session_state.score_q7 = responses["q7"]
+            st.session_state.score_q4 = responses["q4"]
+            st.session_state.score_q8 = responses["q8"]
             
             hc_total = 0
             lc_total = 0
@@ -262,6 +271,14 @@ elif st.session_state.stage == "finish":
         f"&entry.745662331={safe_education}"                    # 最高學歷 
         f"&entry.417434269={safe_bot_freq}"                     # 使用頻率 
         f"&entry.455003621={safe_bot_familiarity}"              # 熟悉程度
+
+        f"&entry.1118580480={st.session_state.score_q5}"          # 1. 清楚精確 (LC)
+        f"&entry.1889837319={st.session_state.score_q2}"          # 2. 間接溝通 (HC)
+        f"&entry.1846938739={st.session_state.score_q6}"          # 3. 準確性 (LC)
+        f"&entry.717503924={st.session_state.score_q3}"          # 4. 含蓄保留 (HC)
+        f"&entry.1446430717={st.session_state.score_q7}"          # 5. 開放直接 (LC)
+        f"&entry.1861197557={st.session_state.score_q4}"          # 6. 關係和諧 (HC)
+        f"&entry.1583972148={st.session_state.score_q8}"          # 7. 分享私事 (LC)
     )
     
     # 縮短 iframe 高度至 600，解決提交後的白畫面問題
